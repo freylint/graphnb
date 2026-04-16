@@ -36,7 +36,7 @@ jobs:
           runCmd: |
             make notebook.html
             mkdir -p public
-            cp notebook.html public/index.html
+            cp dist/index.html public/index.html
             if [ -d notebook_files ]; then
               cp -r notebook_files public/notebook_files
             fi
