@@ -1,0 +1,20 @@
+{
+	"name": "Debian Slim Dev",
+	"build": {
+		"dockerfile": "Dockerfile"
+	},
+	"customizations": {
+		"vscode": {
+			"extensions": [
+				"ms-vscode.remote-explorer",
+				"ms-toolsai.jupyter",
+				"ms-python.python"
+			],
+			"settings": {
+				"terminal.integrated.defaultProfile.linux": "bash",
+				"notebook.defaultCellLanguage": "typescript"
+			}
+		}
+	},
+	"remoteUser": "root"
+}
