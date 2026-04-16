@@ -34,7 +34,7 @@ jobs:
         uses: devcontainers/ci@v0.3
         with:
           runCmd: |
-            make notebook.html
+            make dist/index.html
             mkdir -p public
             cp dist/index.html public/index.html
             if [ -d notebook_files ]; then
