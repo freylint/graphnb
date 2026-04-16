@@ -1,8 +1,8 @@
-# GRAPHNB - The Graph Based Notebook <a href="https://github.com/freylint/graphnb" style="float:right;text-decoration:none;" title="Source code">&#x3C;/&#x3E;</a>
+# LMPriestley's Notebook
 
 This is a personal project to collect my personal knowledge and small utilities into an obsidian inspired jupyter notebook.
 
-To view the interactive version of this project, please visit [lmpriestley.com](https://freyground.com).
+To view the interactive version of this project, please visit [lmpriestley.com](https://freyground.com). Sources available at [github.com/freylint/gbnotebook](https://www.github.com/freylint/gbnotebook).
 
 ## Table of Contents
 
