@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>LMNotebook</title>
+  <link href=" https://cdn.jsdelivr.net/npm/normalize.css@8.0.1/normalize.min.css " rel="stylesheet">
+  <script src=" https://cdn.jsdelivr.net/npm/cytoscape@3.33.2/dist/cytoscape.min.js "></script>
+  <!-- NBSTYLE ---->
+</head>
+
+<body>
+  <template id="site-header-template">
+    <header class="site-header">
+      <div class="site-header__inner">
+        <button class="outline-toggle" type="button" aria-expanded="true" aria-controls="outline-panel">
+          <p>☰</p>
+          <span class="visually-hidden">Toggle outline</span>
+        </button>
+        <a class="site-brand" href="/">LMNotebook</a>
+        <p class="site-tagline">Interactive notebook and documentation</p>
+      </div>
+    </header>
+  </template>
+
+
+  <template id="outline-panel-template">
+    <aside class="outline-panel" id="outline-panel">
+      <details class="outline-details" open>
+        <summary>Outline</summary>
+        <nav class="outline-nav" aria-label="Document outline">
+          <ul class="outline-list"></ul>
+        </nav>
+      </details>
+    </aside>
+  </template>
+
+  <template id="profile-card-template">
+    <aside class="profile-card card" id="profile-card">
+      <div class="profile-card__avatar">
+        <button class="profile-card__avatar-button" type="button" aria-label="View profile">
+          <img src="https://media.licdn.com/dms/image/v2/D4D03AQElkcrjCsmZ6w/profile-displayphoto-shrink_400_400/profile-displayphoto-shrink_400_400/0/1681165276146?e=1778112000&v=beta&t=sas4-KWimF_l0JMQOU0HSmy7Q5m6gd98gg_Ik7pKe7w"
+            alt="Profile picture">
+        </button>
+      </div>
+      <div class="profile-card__info">
+        <h2>Lucas Priestley</h2>
+        <p>Technician, Maker, Fighting Game Enthusiast</p>
+      </div>
+      <div class="profile-card__links">
+        <a href="https://github.com/freylint/graphnb/releases" class="profile-link">Download Releases</a>
+        <a href="https://www.linkedin.com/in/lmpriestley/" class="profile-link">LinkedIn</a>
+        <a href="https://github.com/freylint" class="profile-link">GitHub</a>
+        <a href="mailto:contact@lmpriestley.com" class="profile-link">Email</a>
+      </div>
+    </aside>
+  </template>
+
+  <div class="page-shell">
+    <main class="page-content">
+      <section class="notebook-card card">
+        <div class="notebook-card__body">
+          <!-- NBNOTEBOOK -->
+        </div>
+      </section>
+    </main>
+  </div>
+  <script>
+    const headerTemplate = document.getElementById('site-header-template');
+    const outlineTemplate = document.getElementById('outline-panel-template');
+    const profileCardTemplate = document.getElementById('profile-card-template');
+    const pageShell = document.querySelector('.page-shell');
+    if (headerTemplate && pageShell) {
+      document.body.insertBefore(headerTemplate.content.cloneNode(true), pageShell);
+    }
+    if (outlineTemplate && pageShell) {
+      const mainContent = pageShell.querySelector('main');
+      if (mainContent) {
+        pageShell.insertBefore(outlineTemplate.content.cloneNode(true), mainContent);
+      } else {
+        pageShell.appendChild(outlineTemplate.content.cloneNode(true));
+      }
+    }
+    if (profileCardTemplate && pageShell) {
+      const mainContent = pageShell.querySelector('main');
+      if (mainContent) {
+        pageShell.appendChild(profileCardTemplate.content.cloneNode(true));
+      } else {
+        pageShell.appendChild(profileCardTemplate.content.cloneNode(true));
+      }
+    }
+    const outlineToggle = document.querySelector('.outline-toggle');
+    if (outlineToggle && pageShell) {
+      const mobileQuery = window.matchMedia('(max-width: 950px)');
+
+      const syncOutlineState = () => {
+        const mobile = mobileQuery.matches;
+        pageShell.classList.remove('outline-open', 'outline-hidden');
+        if (mobile) {
+          outlineToggle.setAttribute('aria-expanded', 'false');
+        } else {
+          outlineToggle.setAttribute('aria-expanded', 'true');
+        }
+      };
+
+      syncOutlineState();
+      mobileQuery.addEventListener('change', syncOutlineState);
+
+      outlineToggle.addEventListener('click', () => {
+        if (mobileQuery.matches) {
+          const open = pageShell.classList.toggle('outline-open');
+          outlineToggle.setAttribute('aria-expanded', String(open));
+        } else {
+          const hidden = pageShell.classList.toggle('outline-hidden');
+          outlineToggle.setAttribute('aria-expanded', String(!hidden));
+        }
+      });
+    }
+    const outlineRoot = document.querySelector('.outline-list');
+    const notebookRoot = document.querySelector('.page-content');
+    if (outlineRoot && notebookRoot) {
+      const headings = notebookRoot.querySelectorAll('h1, h2, h3, h4, h5, h6');
+      if (headings.length) {
+        headings.forEach((heading) => {
+          if (!heading.id) {
+            heading.id = heading.textContent.trim().toLowerCase().replace(/[\s\/]+/g, '-').replace(/[^a-z0-9\-]/g, '');
+          }
+          const level = Number(heading.tagName.slice(1));
+          const item = document.createElement('li');
+          item.className = `outline-item outline-level-${level}`;
+          item.innerHTML = `<a href="#${heading.id}">${heading.textContent.trim()}</a>`;
+          outlineRoot.appendChild(item);
+        });
+      } else {
+        outlineRoot.innerHTML = '<li class="outline-empty">No headings available</li>';
+      }
+    }
+  </script>
+</body>
+
+</html>

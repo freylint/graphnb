@@ -8,7 +8,7 @@ To view the interactive version of this project, please visit [lmpriestley.com](
 
 - [License](#License)
 - [Packages](#Packages)
-  - [Common ECS Interface](#Common-ECS-Interface)
+  - [NBECS Interface](#NBECS-Interface)
   - [Pico ECS](#Pico-ECS)
 - [Articles](#Articles)
 - [Notes](#Notes)
@@ -21,13 +21,13 @@ See [LICENSE](LICENSE) for the full text.
 
 ## Packages
 
-### Common ECS Interface
+### NBECS Interface - Notebook ECS interfaces
 
-The common ECS Interface implements a shared interface between multiple ECS implementations
+The NBECS interface implements a shared interface between multiple ECS implementations.
 
-### Pico ECS
+### NBECS
 
-Pico ECS is an extremely minimal ECS implementation for interactive applications.
+NBECS is an extremely minimal ECS implementation for interactive applications.
 
 ## Articles
 

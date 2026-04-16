@@ -1,5 +1,5 @@
 {
-	"name": "Debian Slim Dev",
+	"name": "GRAPHNB",
 	"build": {
 		"dockerfile": "Dockerfile"
 	},

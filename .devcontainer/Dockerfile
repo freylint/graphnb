@@ -31,7 +31,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 # Install npm-based tooling used in notebooks and scripts.
-RUN npm install -g tslab cytoscape && tslab install --python=/usr/bin/python3
+# npx is available from the apt-installed npm package, so only install additional CLI tools here.
+RUN npm install -g tslab cytoscape html-minifier && tslab install --python=/usr/bin/python3
 
 # Workspace folder
 WORKDIR /workspace

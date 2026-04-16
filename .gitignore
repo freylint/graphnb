@@ -1,7 +1,6 @@
 # Build Artifacts
 dist/
 build/
-*.html
 
 # Python
 __pycache__/

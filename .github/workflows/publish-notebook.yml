@@ -34,15 +34,14 @@ jobs:
         uses: devcontainers/ci@v0.3
         with:
           runCmd: |
-            chmod +x ./make.sh
-            ./make.sh publish --hide-code
+            make notebook.html
             mkdir -p public
             cp notebook.html public/index.html
             if [ -d notebook_files ]; then
               cp -r notebook_files public/notebook_files
             fi
             if [ -d assets ]; then
-              cp -r assets public/assets
+              cp -r assets public
             fi
 
       - name: Upload Pages artifact
