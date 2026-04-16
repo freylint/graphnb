@@ -8,7 +8,7 @@ on:
       - notebook.ipynb
       - make.sh
       - assets/**
-      - .github/workflows/publish-readme-pages.yml
+      - .github/workflows/publish-notebook.yml
   workflow_dispatch:
 
 permissions:
@@ -30,28 +30,20 @@ jobs:
       - name: Configure Pages
         uses: actions/configure-pages@v5
 
-      - name: Setup Python
-        uses: actions/setup-python@v5
+      - name: Build notebook site in devcontainer
+        uses: devcontainers/ci@v0.3
         with:
-          python-version: '3.11'
-
-      - name: Install publish dependencies
-        run: |
-          python -m pip install --upgrade pip
-          python -m pip install nbconvert jupyter
-
-      - name: Build notebook site using project script
-        run: |
-          chmod +x ./make.sh
-          ./make.sh publish --hide-code
-          mkdir -p public
-          cp notebook.html public/index.html
-          if [ -d notebook_files ]; then
-            cp -r notebook_files public/notebook_files
-          fi
-          if [ -d assets ]; then
-            cp -r assets public/assets
-          fi
+          runCmd: |
+            chmod +x ./make.sh
+            ./make.sh publish --hide-code
+            mkdir -p public
+            cp notebook.html public/index.html
+            if [ -d notebook_files ]; then
+              cp -r notebook_files public/notebook_files
+            fi
+            if [ -d assets ]; then
+              cp -r assets public/assets
+            fi
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
