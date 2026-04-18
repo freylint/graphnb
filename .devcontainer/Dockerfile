@@ -5,12 +5,14 @@ ENV DEBIAN_FRONTEND=noninteractive
 
 # Install base tools
 RUN apt-get update && apt-get install -y --no-install-recommends \
+    # Essentials
     build-essential \
     curl \
     wget \
     ca-certificates \
     git \
     openssh-client \
+    # Jupyter
     python3 \
     python3-dev \
     python3-ipykernel \
@@ -25,14 +27,19 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     python3-numpy \
     python3-pandas \
     python3-matplotlib \
+    # Node
     nodejs \
     npm \
     node-typescript \
+    # Debian Image generation Dependencies
+    debootstrap \
+    ostree \
+    rsync \
     && rm -rf /var/lib/apt/lists/*
 
 # Install npm-based tooling used in notebooks and scripts.
 # npx is available from the apt-installed npm package, so only install additional CLI tools here.
-RUN npm install -g tslab cytoscape html-minifier && tslab install --python=/usr/bin/python3
+RUN npm install -g tslab cytoscape html-minifier ts-node @types/node && tslab install --python=/usr/bin/python3
 
 # Workspace folder
 WORKDIR /workspace

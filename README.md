@@ -8,10 +8,16 @@ To view the interactive version of this project, please visit [lmpriestley.com](
 
 - [License](#License)
 - [Packages](#Packages)
-  - [NBECS Interface](#NBECS-Interface)
-  - [Pico ECS](#Pico-ECS)
+  - [NBECS Interface - Notebook ECS interfaces](#NBECS-Interface---Notebook-ECS-interfaces)
+  - [NBECS](#NBECS)
 - [Articles](#Articles)
 - [Notes](#Notes)
+- [Images](#Images)
+- [Homelab Setup](#Homelab-Setup)
+  - [Hardware](#Hardware)
+    - [Network](#Network)
+    - [Homelab Server](#Homelab-Server)
+    - [Thin Client](#Thin-Client)
 
 
 ## License
@@ -21,14 +27,13 @@ See [LICENSE](LICENSE) for the full text.
 
 ## Packages
 
-### NBECS Interface - Notebook ECS interfaces
+## Homelab Setup
 
-The NBECS interface implements a shared interface between multiple ECS implementations.
+### Hardware
+#### Network
+Commodity home router into a switch.
+#### Homelab Server
+4u threadripper machine w/ 2x dedicated GPU and 128GB of RAM.
+#### Thin Client
+Commodity x86 laptops w/ port replicators.
 
-### NBECS
-
-NBECS is an extremely minimal ECS implementation for interactive applications.
-
-## Articles
-
-## Notes

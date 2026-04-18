@@ -1,8 +1,20 @@
 # GraphNB project Makefile
-.PHONY: all clean
+.PHONY: all clean baseimg srvimg clientimg
 .ONESHELL:
 
-all: README.md dist/index.html
+define extract-cell
+python3 scripts/extract-cell.py "$(1)"
+endef
+
+define notebook-call
+npx ts-node --transpile-only scripts/notebook-call.ts --eval-only 
+endef
+
+define notebook-call-fn
+npx ts-node --transpile-only scripts/notebook-call.ts --call "$(1)"
+endef
+
+all: README.md dist/index.html hlimg
 
 README.md: notebook.ipynb
 	python3 -m nbconvert --to markdown --output README \
@@ -19,40 +31,37 @@ build/notebook.html: notebook.ipynb | build
 		--template basic \
 		notebook.ipynb
 
-build/index.html: build/notebook.html | build
+build/base:
+	# TODO build base image
+
+build/index.html: build/notebook.html
 	# Copy the template html to the build directory
 	cp public/layout.html build/index.html
 
 	# Embed the stylesheet and notebook into the page
-	python3 - <<'PY'
-	from pathlib import Path
-
-	index_path = Path('build/index.html')
-	style_path = Path('public/style.css')
-	notebook_path = Path('build/notebook.html')
-
-	page = index_path.read_text()
-	style = style_path.read_text().rstrip()
-	notebook = notebook_path.read_text()
-
-	page = page.replace('<!-- NBSTYLE ---->', f'<style>\n{style}\n</style>')
-	page = page.replace('<!-- NBNOTEBOOK -->', notebook)
-	index_path.write_text(page)
-	PY
+	python3 scripts/style-embed.py
 
 	# Minify only the build/index.html output
 	npx html-minifier --collapse-whitespace --remove-comments --remove-optional-tags \
 		--minify-css true --minify-js true \
 		build/index.html -o build/index.html
 
-dist/index.html: build/index.html | dist
+dist/index.html: build/index.html
 	cp build/index.html dist/index.html
 
-dist:
-	mkdir -p dist
 
-build:
-	mkdir -p build
+baseimg: notebook.ipynb
+	$(call extract-cell,// Homelab BaseImage Generation script) \
+	  | $(call notebook-call)
+
+srvimg: baseimg
+	$(call extract-cell,// Homelab Server Image Generation script) \
+	  | $(call notebook-call)
+
+
+clientimg: baseimg
+	$(call extract-cell,// Homelab Client Image Generation script) \
+	  | $(call notebook-call)
 
 clean:
-	rm -f build dist
+	rm -rf build dist
