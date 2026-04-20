@@ -1,6 +1,5 @@
 # GraphNB project Makefile
-.PHONY: all clean baseimg srvimg clientimg
-.ONESHELL:
+.PHONY: all clean baseimg
 
 define extract-cell
 python3 scripts/extract-cell.py "$(1)"
@@ -14,7 +13,7 @@ define notebook-call-fn
 npx ts-node --transpile-only scripts/notebook-call.ts --call "$(1)"
 endef
 
-all: README.md dist/index.html hlimg
+all: README.md dist/index.html
 
 README.md: notebook.ipynb
 	python3 -m nbconvert --to markdown --output README \
