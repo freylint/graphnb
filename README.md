@@ -29,7 +29,7 @@ See [LICENSE](LICENSE) for the full text.
 
 ### Overview
 
-The homelab is built on a hybrid cloud architecture where local machines are managed through [OSTree](). The cloud machines are managed through [OSI Image]() deployments to [AWS Lightsail](). The secure tunnel for the hybrid cloud is provided via [Strongswan]().
+The homelab is built on a hybrid cloud architecture where local machines are managed through [OSTree](https://github.com/ostreedev/ostree). The cloud machines are managed through [OSI Image](https://specs.opencontainers.org/image-spec/) deployments to [AWS Lightsail](https://aws.amazon.com/lightsail/). The secure tunnel for the hybrid cloud is provided via [Strongswan](https://strongswan.org/).
 
 Images are seperated into the following categories based on their expected execution environment:
 - Bare Metal
@@ -62,7 +62,6 @@ Development Stack:
 - Python3
 - Jupyter (Static Site Generator)
   - TSLab (Typescript support for Jupyter)
-- 
 
 ##### Image Generation Script
 
