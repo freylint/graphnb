@@ -27,21 +27,31 @@ See [LICENSE](LICENSE) for the full text.
 
 ## Homelab Setup
 
-### Hardware
-#### Network
-Commodity home router into a switch.
-#### Homelab Server
-4u threadripper machine w/ 2x dedicated GPU and 128GB of RAM.
-#### Thin Client
-Commodity x86 laptops w/ port replicators.
+### Overview
 
-### Image Generation
+The homelab is built on a hybrid cloud architecture where local machines are managed through [OSTree](). The cloud machines are managed through [OSI Image]() deployments to [AWS Lightsail](). The secure tunnel for the hybrid cloud is provided via [Strongswan]().
 
-Below is the in progress code for image generation. It is loosely based on a previous implementation using [Ansible]() + [mkosi]().
+Images are seperated into the following categories based on their expected execution environment:
+- Bare Metal
+  - Client - Nvidia Drivers
+  - Client - AMDGPU
+  - Server - AMDGPU
+- Cloud
+  - Gateway - Revproxy / LDAP / Tunnel
+
+#### Software Stack / Configuration Management
+All images are based on debian OSI Images. Local machines are deployed via Netboot / OSTree. Cloud images are managed through OSI Image upload to the cloud vendor.
+
+##### Image Generation Script
+
+Image generation is performed via [debootstrap](). Images are then converted to netboot / OSTree / Container formats and deployed seperately in the CD Environment.
+
+See below for implementation details:
 
 
 ```typescript
 // Homelab BaseImage Generation script
+
 import {
   DEBIAN_RELEASE,
   DEBOOTSTRAP_VARIANT,
@@ -100,7 +110,9 @@ function buildServerImage() {
  */
 function buildGatewayImage() {
     runChrootCommand(LOCAL_DIST_DIR_GW, 'echo', ['Hello from gateway chroot']);
+    // Clean apt cache to reduce image size
     runChrootCommand(LOCAL_DIST_DIR_GW, 'apt-get', ['clean']);
+    
 }
 
 // Ensure build environment is set up
@@ -545,6 +557,8 @@ Debootstrap command completed.
 > rsync -a /workspaces/graphnb/build/base/ /workspaces/graphnb/dist/client/
 
 > rsync -a /workspaces/graphnb/build/base/ /workspaces/graphnb/dist/server/
+
+> rsync -a /workspaces/graphnb/build/base/ /workspaces/graphnb/dist/gateway/
 Running in chroot shell: /bin/sh -c echo 'Hello from chroot'
 
 > chroot /workspaces/graphnb/dist/client/ /bin/sh -c echo 'Hello from chroot'
@@ -555,6 +569,14 @@ Running in chroot shell: /bin/sh -c echo 'Hello from server chroot'
 > chroot /workspaces/graphnb/dist/server/ /bin/sh -c echo 'Hello from server chroot'
 Hello from server chroot
 
+Running in chroot shell: /bin/sh -c echo 'Hello from gateway chroot'
+
+> chroot /workspaces/graphnb/dist/gateway/ /bin/sh -c echo 'Hello from gateway chroot'
+Hello from gateway chroot
+
+Running in chroot shell: /bin/sh -c apt-get clean
+
+> chroot /workspaces/graphnb/dist/gateway/ /bin/sh -c apt-get clean
 ```
 </details>
 
