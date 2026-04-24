@@ -1,4 +1,4 @@
-import { spawnSync } from 'child_process';
+import { spawnSync, SpawnSyncOptionsWithStringEncoding, SpawnSyncReturns } from 'child_process';
 import { existsSync, mkdirSync, rmSync, readdirSync, readFileSync, writeFileSync, chmodSync } from 'fs';
 import { join } from 'path';
 
@@ -7,8 +7,12 @@ export const DEBOOTSTRAP_VARIANT = 'minbase';
 export const DEBOOTSTRAP_MIRROR = 'http://deb.debian.org/debian';
 export const LOCAL_DIST_DIR_SRV = join(process.cwd(), 'dist/server/');
 export const LOCAL_DIST_DIR_CLIENT = join(process.cwd(), 'dist/client/');
+export const LOCAL_DIST_DIR_GW = join(process.cwd(), 'dist/gateway/');
 export const LOCAL_BUILD_DIR = join(process.cwd(), 'build/base/');
 
+/**
+ * A minimal notebook cell representation used by notebook utilities.
+ */
 export type NotebookCell = {
   cell_type: string;
   source: string[] | string;
@@ -16,6 +20,9 @@ export type NotebookCell = {
   metadata?: Record<string, unknown>;
 };
 
+/**
+ * A minimal notebook document representation used by notebook utilities.
+ */
 export type NotebookFile = {
   cells: NotebookCell[];
   metadata?: Record<string, unknown>;
@@ -23,10 +30,22 @@ export type NotebookFile = {
   nbformat_minor?: number;
 };
 
+/**
+ * Normalize a cell source value to an array of string lines.
+ *
+ * @param source - Notebook cell source content.
+ * @returns The source as an array of lines.
+ */
 export function sourceLines(source: string[] | string): string[] {
   return Array.isArray(source) ? source : source.split('\n');
 }
 
+/**
+ * Convert heading text into a markdown anchor fragment.
+ *
+ * @param text - Heading text to normalize.
+ * @returns A normalized anchor string.
+ */
 export function markdownAnchor(text: string): string {
   return text
     .trim()
@@ -34,6 +53,11 @@ export function markdownAnchor(text: string): string {
     .replace(/\s+/g, '-');
 }
 
+/**
+ * Regenerate the notebook Table of Contents cell from current markdown headings.
+ *
+ * @param notebookPath - Path to the notebook file.
+ */
 export function updateNotebookToc(notebookPath = 'notebook.ipynb'): void {
   const raw = readFileSync(notebookPath, 'utf-8');
   const notebook = JSON.parse(raw) as NotebookFile;
@@ -95,22 +119,39 @@ export function updateNotebookToc(notebookPath = 'notebook.ipynb'): void {
   writeFileSync(notebookPath, `${JSON.stringify(notebook, null, 4)}\n`, { encoding: 'utf-8' });
 }
 
-export function runSyncCommand(command: string, args: string[], cwd?: string) {
-  const result = spawnSync(command, args, {
-    cwd,
+/**
+ * Options for `spawnSyncCommand()`.
+ *
+ * This type allows callers to provide additional `spawnSync` options such as
+ * `cwd` or `env` while preserving the helper's default encoding, stdio, and
+ * shell configuration.
+ */
+export type SpawnCommandOptions = Omit<SpawnSyncOptionsWithStringEncoding, 'encoding' | 'stdio' | 'shell'> &
+  Partial<Pick<SpawnSyncOptionsWithStringEncoding, 'encoding' | 'stdio' | 'shell'>>;
+
+/**
+ * Spawn a process with consistent options for the prelude.
+ *
+ * @param command - The command to run.
+ * @param args - The command arguments.
+ * @param options - Additional spawn options.
+ */
+export function spawnSyncCommand(
+  command: string,
+  args: string[],
+  options: SpawnCommandOptions = {},
+): SpawnSyncReturns<string> {
+  return spawnSync(command, args, {
     stdio: 'pipe',
-    shell: false,
     encoding: 'utf8',
+    shell: false,
+    ...options,
   });
+}
+
+function assertSpawnResult(result: SpawnSyncReturns<string>, command: string, args: string[]) {
   if (result.error) {
     throw result.error;
-  }
-
-  if (result.stdout) {
-    console.log(result.stdout);
-  }
-  if (result.stderr) {
-    console.error(result.stderr);
   }
 
   if (result.status !== 0) {
@@ -118,6 +159,39 @@ export function runSyncCommand(command: string, args: string[], cwd?: string) {
   }
 }
 
+function ensureDirectory(path: string) {
+  mkdirSync(path, { recursive: true });
+}
+
+function pathExists(path: string): boolean {
+  return existsSync(path);
+}
+
+/**
+ * Execute a command synchronously and throw if it exits with an error.
+ *
+ * @param command - The command to run.
+ * @param args - The command arguments.
+ * @param cwd - Optional working directory for the command.
+ */
+export function runSyncCommand(command: string, args: string[], cwd?: string) {
+  console.log(`\n> ${command} ${args.join(' ')}`);
+  const result = spawnSyncCommand(command, args, { cwd });
+  if (result.stdout) {
+    console.log(result.stdout);
+  }
+  if (result.stderr) {
+    console.error(result.stderr);
+  }
+  assertSpawnResult(result, command, args);
+}
+
+/**
+ * Quote a string for safe shell use when needed.
+ *
+ * @param value - The string to quote.
+ * @returns The quoted or original string.
+ */
 export function shellQuote(value: string) {
   if (/^[A-Za-z0-9_\/\.-]+$/.test(value)) {
     return value;
@@ -125,6 +199,14 @@ export function shellQuote(value: string) {
   return `'${value.replace(/'/g, `'\\''`)}'`;
 }
 
+/**
+ * Run a command inside a chroot path, or directly if no chroot is provided.
+ *
+ * @param chrootPath - Path to the chroot directory.
+ * @param command - The command to run.
+ * @param args - Arguments for the command.
+ * @param cwd - Optional working directory.
+ */
 export function runChrootCommand(chrootPath: string | undefined, command: string, args: string[], cwd?: string) {
   if (!chrootPath) {
     console.log(`Running command without chroot: ${command} ${args.join(' ')}`);
@@ -146,28 +228,49 @@ export function runChrootCommand(chrootPath: string | undefined, command: string
   return runSyncCommand('chroot', [chrootPath, '/bin/sh', '-c', shellCommand], cwd);
 }
 
+/**
+ * Ensure a directory exists.
+ *
+ * @param path - Directory path to create.
+ */
 export function ensureDir(path: string) {
-  if (!existsSync(path)) {
-    mkdirSync(path, { recursive: true });
+  if (!pathExists(path)) {
+    ensureDirectory(path);
   }
 }
 
+/**
+ * Check whether a directory is empty or missing.
+ *
+ * @param path - Directory path to inspect.
+ * @returns True when the directory does not exist or has no entries.
+ */
 export function isDirEmpty(path: string): boolean {
-  if (!existsSync(path)) {
+  if (!pathExists(path)) {
     return true;
   }
   return readdirSync(path).length === 0;
 }
 
+/**
+ * Remove and recreate a directory.
+ *
+ * @param path - Directory path to clear.
+ */
 export function clearDir(path: string) {
-  if (existsSync(path)) {
+  if (pathExists(path)) {
     rmSync(path, { recursive: true, force: true });
   }
-  mkdirSync(path, { recursive: true });
+  ensureDirectory(path);
 }
 
+/**
+ * Throw when a required command is not available on PATH.
+ *
+ * @param command - Command name to check.
+ */
 export function checkCommandAvailable(command: string) {
-  const result = spawnSync('command', ['-v', command], {
+  const result = spawnSyncCommand('command', ['-v', command], {
     stdio: 'ignore',
     shell: true,
   });
@@ -176,6 +279,9 @@ export function checkCommandAvailable(command: string) {
   }
 }
 
+/**
+ * Install a Git pre-commit hook that regenerates README.md.
+ */
 export function addPreCommitHook(): void {
   const hookDir = join('.git', 'hooks');
   const hookPath = join(hookDir, 'pre-commit');

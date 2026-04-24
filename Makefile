@@ -22,17 +22,21 @@ dist:
 	mkdir -p dist
 
 README.md: notebook.ipynb
+	python3 scripts/sync-notebook-tags.py notebook.ipynb
+	python3 scripts/sync-notebook-tags.py notebook.ipynb
 	python3 -m nbconvert --to markdown --output README \
-		--MarkdownExporter.exclude_input=True \
-		--MarkdownExporter.exclude_output=True \
 		--TagRemovePreprocessor.enabled=True \
-		--TagRemovePreprocessor.remove_cell_tags hide-on-readme \
+		--TagRemovePreprocessor.remove_input_tags hide-on-readme \
+		--TagRemovePreprocessor.remove_all_outputs_tags hide-on-readme \
 		notebook.ipynb
+	python3 scripts/wrap-output-spoilers.py README.md
 
 build/notebook.html: notebook.ipynb | build
+	python3 scripts/sync-notebook-tags.py notebook.ipynb
 	python3 -m nbconvert --to html --output build/notebook \
-		--HTMLExporter.exclude_input=True \
 		--TagRemovePreprocessor.enabled=True \
+		--TagRemovePreprocessor.remove_input_tags hide-on-publish \
+		--TagRemovePreprocessor.remove_all_outputs_tags hide-on-publish \
 		--template basic \
 		notebook.ipynb
 
