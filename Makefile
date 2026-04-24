@@ -15,6 +15,12 @@ endef
 
 all: README.md dist/index.html
 
+build:
+	mkdir -p build
+
+dist:
+	mkdir -p dist
+
 README.md: notebook.ipynb
 	python3 -m nbconvert --to markdown --output README \
 		--MarkdownExporter.exclude_input=True \

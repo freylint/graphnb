@@ -25,8 +25,6 @@ To view the interactive version of this project, please visit [lmpriestley.com](
 This project is licensed under the GNU Affero General Public License v3.0.
 See [LICENSE](LICENSE) for the full text.
 
-## Packages
-
 ## Homelab Setup
 
 ### Hardware
@@ -37,3 +35,5 @@ Commodity home router into a switch.
 #### Thin Client
 Commodity x86 laptops w/ port replicators.
 
+
+## Articles
