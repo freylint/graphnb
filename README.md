@@ -42,6 +42,28 @@ Images are seperated into the following categories based on their expected execu
 #### Software Stack / Configuration Management
 All images are based on debian OSI Images. Local machines are deployed via Netboot / OSTree. Cloud images are managed through OSI Image upload to the cloud vendor.
 
+Production Stack:
+- Gateway
+  - StrongSwan (Secure Tunnel / Hybrid Cloud Network)
+  - Traefik (Revproxy)
+  - OpenSSH (Deployment / Management)
+  - AWS Lightsail Containers (Hosting)
+  - Light LDAP (Authentication)
+- Server
+  - HomeAssistant (IOT Management)
+  - OStree / Netboot (System Image Deployment)
+  - NFS (File Share)
+- Client
+  - KDE
+
+Development Stack:
+- Devcontainers
+- NodeJS
+- Python3
+- Jupyter (Static Site Generator)
+  - TSLab (Typescript support for Jupyter)
+- 
+
 ##### Image Generation Script
 
 Image generation is performed via [debootstrap](). Images are then converted to netboot / OSTree / Container formats and deployed seperately in the CD Environment.
