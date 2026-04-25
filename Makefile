@@ -18,7 +18,7 @@ all: README.md dist/index.html
 build:
 	mkdir -p build
 
-##dist:mkdir -p dist
+dist:mkdir -p dist
 
 README.md: notebook.ipynb
 	python3 scripts/sync-notebook-tags.py notebook.ipynb
