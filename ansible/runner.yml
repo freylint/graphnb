@@ -1,0 +1,23 @@
+---
+- name: Run container workflows through role tasks
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  become: true
+  vars:
+    target_role: "{{ target_role | default('server') }}"
+    target_action: "{{ target_action | default('build') }}"
+
+  tasks:
+    - name: Validate target role
+      ansible.builtin.assert:
+        that:
+          - target_role in ['server', 'client', 'cloud']
+        fail_msg: "target_role must be one of: server, client, cloud"
+
+    - name: Execute container workflow
+      ansible.builtin.include_role:
+        name: batnet
+      vars:
+        batnet_role: "{{ target_role }}"
+        batnet_execution_mode: container

@@ -1,0 +1,17 @@
+---
+- name: Resolve image ID for deploy
+  ansible.builtin.shell: >-
+    podman image inspect {{ batnet_target_image }} --format '{{"{{.Id}}"}}'
+  args:
+    chdir: "{{ playbook_dir }}/.."
+  register: batnet_image_id
+  changed_when: false
+
+- name: Validate image ID was resolved
+  ansible.builtin.fail:
+    msg: Failed to resolve image ID for {{ batnet_target_image }}
+  when: (batnet_image_id.stdout | default('') | trim) == ''
+
+- name: Switch host image using bootc
+  ansible.builtin.command:
+    cmd: bootc switch --transport containers-storage {{ batnet_image_id.stdout | trim }}

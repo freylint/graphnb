@@ -1,0 +1,4 @@
+---
+- name: Clean container image
+  ansible.builtin.command:
+    cmd: podman rmi {{ batnet_cfg.clean_target }}

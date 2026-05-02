@@ -1,0 +1,3 @@
+---
+batnet_timezone: UTC
+batnet_enable_firewalld: true

@@ -1,0 +1,93 @@
+---
+batnet_role: server
+
+batnet_base_image: ghcr.io/ublue-os/bazzite:stable
+batnet_nvidia_base_image: ghcr.io/ublue-os/bazzite-nvidia:stable
+
+server_packages:
+  - cockpit
+  - podman
+  - 389-ds-base
+
+server_image_name: localhost/server
+server_tag: latest
+server_containerfile: ansible/roles/batnet/files/server.Containerfile
+server_base_image: "{{ batnet_base_image }}"
+server_nvidia_base_image: "{{ batnet_nvidia_base_image }}"
+
+client_packages:
+  - steam
+  - bottles
+  - sunshine
+  - mangohud
+
+client_image_name: localhost/client
+client_tag: latest
+client_containerfile: ansible/roles/batnet/files/client.Containerfile
+client_base_image: "{{ batnet_base_image }}"
+client_nvidia_base_image: "{{ batnet_nvidia_base_image }}"
+
+cloud_packages:
+  - caddy
+  - wireguard-tools
+  - openssh-server
+
+cloud_image_name: localhost/cloud
+cloud_tag: latest
+cloud_containerfile: ansible/roles/batnet/files/cloud.Containerfile
+
+batnet_host_configs:
+  server:
+    packages: "{{ server_packages }}"
+    services:
+      - cockpit.socket
+  client:
+    packages: "{{ client_packages }}"
+    services: []
+  cloud:
+    packages: "{{ cloud_packages }}"
+    services:
+      - caddy
+      - sshd
+
+batnet_container_configs:
+  server:
+    image_name: "{{ server_image_name }}"
+    default_tag: "{{ server_tag }}"
+    nvidia_tag: nvidia
+    containerfile: "{{ server_containerfile }}"
+    base_image: "{{ server_base_image }}"
+    nvidia_base_image: "{{ server_nvidia_base_image }}"
+    use_base_arg: true
+    build_actions:
+      - build
+      - build-no-cache
+      - deploy
+    deploy_action: deploy
+    deploy_strategy: bootc
+    supports_clean: true
+    clean_target: "{{ server_image_name }}:{{ server_tag }}"
+  client:
+    image_name: "{{ client_image_name }}"
+    default_tag: amd-intel
+    nvidia_tag: nvidia
+    containerfile: "{{ client_containerfile }}"
+    base_image: "{{ client_base_image }}"
+    nvidia_base_image: "{{ client_nvidia_base_image }}"
+    use_base_arg: true
+    build_actions:
+      - build
+      - build-no-cache
+      - deploy
+    deploy_action: deploy
+    deploy_strategy: bootc
+    supports_clean: false
+  cloud:
+    image_name: "{{ cloud_image_name }}"
+    default_tag: "{{ cloud_tag }}"
+    containerfile: "{{ cloud_containerfile }}"
+    use_base_arg: false
+    build_actions:
+      - build
+      - build-no-cache
+    supports_clean: false

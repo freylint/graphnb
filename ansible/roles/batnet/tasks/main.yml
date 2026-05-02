@@ -1,0 +1,78 @@
+---
+- name: Resolve batnet execution mode
+  ansible.builtin.set_fact:
+    batnet_execution_mode: "{{ batnet_execution_mode | default('container' if target_action is defined else 'host') }}"
+
+- name: Validate batnet execution mode
+  ansible.builtin.assert:
+    that:
+      - batnet_execution_mode in ['host', 'container']
+    fail_msg: "batnet_execution_mode must be one of: host, container"
+
+- name: Validate batnet role selection for host configuration
+  ansible.builtin.assert:
+    that:
+      - batnet_role in batnet_host_configs
+    fail_msg: "batnet_role must be one of: server, client, cloud"
+  when: batnet_execution_mode == 'host'
+
+- name: Resolve host configuration for selected role
+  ansible.builtin.set_fact:
+    batnet_host_cfg: "{{ batnet_host_configs[batnet_role] }}"
+  when: batnet_execution_mode == 'host'
+
+- name: Ensure role packages are installed
+  ansible.builtin.package:
+    name: "{{ batnet_host_cfg.packages }}"
+    state: present
+  when: batnet_execution_mode == 'host'
+
+- name: Ensure role services are enabled and running
+  ansible.builtin.service:
+    name: "{{ item }}"
+    enabled: true
+    state: started
+  loop: "{{ batnet_host_cfg.services | default([]) }}"
+  when: batnet_execution_mode == 'host'
+
+- name: Resolve batnet container role target
+  ansible.builtin.set_fact:
+    batnet_target_role: "{{ target_role | default(batnet_role | default('server')) }}"
+  when: batnet_execution_mode == 'container'
+
+- name: Validate batnet container role target
+  ansible.builtin.assert:
+    that:
+      - batnet_target_role in batnet_container_configs
+    fail_msg: "target_role must be one of: server, client, cloud"
+  when: batnet_execution_mode == 'container'
+
+- name: Resolve container configuration for selected role
+  ansible.builtin.set_fact:
+    batnet_cfg: "{{ batnet_container_configs[batnet_target_role] }}"
+  when: batnet_execution_mode == 'container'
+
+- name: Resolve shared action parameters
+  ansible.builtin.include_tasks: "{{ role_path }}/tasks/container/prepare.yml"
+  when: batnet_execution_mode == 'container'
+
+- name: Build image when requested
+  ansible.builtin.include_tasks: "{{ role_path }}/tasks/container/build.yml"
+  when:
+    - batnet_execution_mode == 'container'
+    - target_action in (batnet_cfg.build_actions | default([]))
+
+- name: Deploy image with bootc when requested
+  ansible.builtin.include_tasks: "{{ role_path }}/tasks/container/deploy_bootc.yml"
+  when:
+    - batnet_execution_mode == 'container'
+    - target_action == (batnet_cfg.deploy_action | default(''))
+    - (batnet_cfg.deploy_strategy | default('')) == 'bootc'
+
+- name: Clean image when requested
+  ansible.builtin.include_tasks: "{{ role_path }}/tasks/container/clean.yml"
+  when:
+    - batnet_execution_mode == 'container'
+    - target_action == 'clean'
+    - batnet_cfg.supports_clean | default(false) | bool
+

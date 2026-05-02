@@ -1,0 +1,33 @@
+---
+- name: Resolve shared container action parameters
+  ansible.builtin.set_fact:
+    batnet_variant: "{{ build_variant | default('base') }}"
+    batnet_no_cache: "{{ no_cache | default(false) | bool }}"
+
+- name: Resolve shared container image parameters
+  ansible.builtin.set_fact:
+    batnet_target_tag: >-
+      {{
+        batnet_cfg.nvidia_tag
+        if batnet_variant == 'nvidia' and (batnet_cfg.nvidia_tag is defined)
+        else batnet_cfg.default_tag
+      }}
+    batnet_target_image: >-
+      {{
+        batnet_cfg.image_name ~ ':' ~ (
+          batnet_cfg.nvidia_tag
+          if batnet_variant == 'nvidia' and (batnet_cfg.nvidia_tag is defined)
+          else batnet_cfg.default_tag
+        )
+      }}
+    batnet_target_base_image: >-
+      {{
+        batnet_cfg.nvidia_base_image
+        if batnet_variant == 'nvidia' and (batnet_cfg.nvidia_base_image is defined)
+        else (batnet_cfg.base_image | default(''))
+      }}
+
+- name: Keep cloud target image compatibility variable
+  ansible.builtin.set_fact:
+    cloud_target_image: "{{ batnet_target_image }}"
+  when: batnet_target_role == 'cloud'

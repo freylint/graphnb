@@ -1,0 +1,27 @@
+---
+- name: Configure server hosts
+  hosts: server
+  become: true
+  gather_facts: true
+  roles:
+    - role: batnet
+      vars:
+        batnet_role: server
+
+- name: Configure client hosts
+  hosts: client
+  become: true
+  gather_facts: true
+  roles:
+    - role: batnet
+      vars:
+        batnet_role: client
+
+- name: Configure cloud hosts
+  hosts: cloud
+  become: true
+  gather_facts: true
+  roles:
+    - role: batnet
+      vars:
+        batnet_role: cloud
