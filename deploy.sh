@@ -58,26 +58,51 @@ if ! command -v podman >/dev/null 2>&1; then
 fi
 
 TOOL_IMAGE="registry.fedoraproject.org/fedora:latest"
+TOOL_ROOT="$PWD/.toolroot"
 
-pull_tool_image() {
-  echo "Pulling tool image: $TOOL_IMAGE"
-  podman pull "$TOOL_IMAGE"
+prepare_tool_root() {
+  if [[ ! -x "$TOOL_ROOT/usr/bin/make" || ! -x "$TOOL_ROOT/usr/bin/ansible-playbook" ]]; then
+    echo "Preparing tool root at $TOOL_ROOT"
+    rm -rf "$TOOL_ROOT"
+    mkdir -p "$TOOL_ROOT"
+    podman run --rm \
+      -v "$PWD":/workdir:Z \
+      -w /workdir \
+      "$TOOL_IMAGE" \
+      bash -lc 'set -e; dnf install -y --installroot=/workdir/.toolroot --releasever=$(rpm -E %fedora) --setopt=install_weak_deps=False --nodocs make ansible; for f in /workdir/.toolroot/usr/bin/ansible*; do [ -f "$f" ] && sed -i "1s|^#!.*python3$|#!/usr/bin/env python3|" "$f"; done'
+  fi
 }
 
 run_make_with_container() {
   local variant="$1"
-  pull_tool_image
-  echo "Running make/ansible inside container image: $TOOL_IMAGE"
-  podman run --rm \
-    -v "$PWD":/workdir:Z \
-    -w /workdir \
-    "$TOOL_IMAGE" \
-    bash -lc 'dnf install -y make ansible && make deploy DEPLOY_VARIANT="'$variant'"'
+  prepare_tool_root
+  echo "Running make/ansible using tools from $TOOL_ROOT"
+  local python_paths
+  python_paths=$(printf "%s:" "$TOOL_ROOT"/usr/lib/python3.* 2>/dev/null | sed 's/:$//')
+  PATH="$TOOL_ROOT/usr/bin:$PATH" \
+    LD_LIBRARY_PATH="$TOOL_ROOT/usr/lib64:$TOOL_ROOT/lib64${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}" \
+    PYTHONHOME="$TOOL_ROOT/usr" \
+    PYTHONPATH="$python_paths${PYTHONPATH:+:$PYTHONPATH}" \
+    make deploy DEPLOY_VARIANT="$variant"
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 if [[ "$dry_run" == true ]]; then
   echo "Selected deploy variant: $variant"
   echo "Tool image: $TOOL_IMAGE"
+  echo "Tool root: $TOOL_ROOT"
   exit 0
 fi
 
