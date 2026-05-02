@@ -1,14 +1,14 @@
 ARG BASE_IMAGE="ghcr.io/ublue-os/bazzite:stable"
-FROM ${BASE_IMAGE}
+FROM ${BASE_IMAGE} AS base
 
-# Define the build-time variables with default values
+# Define build-time variables with default values.
 ARG RPMFUSION_BASE_URL="https://mirrors.rpmfusion.org"
 ARG VSCODE_REPO_URL="https://packages.microsoft.com/yumrepos/vscode"
 ARG VSCODE_GPG_KEY_URL="https://packages.microsoft.com/keys/microsoft.asc"
 ARG DS_DM_PASSWORD="admin"
 ARG SUFFIX_NAME="dc=lmpriestley,dc=com"
 
-# Enable third party repositories
+# Enable third-party repositories.
 RUN rpm --import ${VSCODE_GPG_KEY_URL} && \
     cat <<EOF > /etc/yum.repos.d/vscode.repo
 [code]
@@ -31,12 +31,37 @@ RUN dnf install -y \
     ${RPMFUSION_BASE_URL}/nonfree/fedora/rpmfusion-nonfree-release-$(rpm -E %fedora).noarch.rpm && \
     dnf copr enable lizardbyte/beta -y
 
-# Install RPM Packages
-RUN dnf install -y git neovim code steam bottles sunshine rustup openssh-server firefox ansible zsh && dnf clean all
+# Install packages common to both client and server images.
+RUN dnf install -y \
+    git \
+    neovim \
+    code \
+    steam \
+    bottles \
+    sunshine \
+    rustup \
+    openssh-server \
+    firefox \
+    ansible \
+    zsh \
+    && dnf clean all
 
 # Make zsh the default login shell for all valid users.
 RUN if ! grep -q "^$(command -v zsh)$" /etc/shells; then echo "$(command -v zsh)" >> /etc/shells; fi && \
     awk -F: '($7 !~ /(nologin|false)$/){print $1}' /etc/passwd | xargs -r -n1 sh -c 'usermod -s "$(command -v zsh)" "$0"'
+
+FROM base AS client
+
+# Install client-only runtime artifacts.
+RUN dnf install -y flatpak && dnf clean all
+
+RUN flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo && \
+    flatpak install -y --system flathub com.moonlight_stream.Moonlight
+
+# Verify final client image and contents are correct.
+RUN bootc container lint
+
+FROM base AS server
 
 # Enable SSH daemon so Cockpit can connect to this machine over SSH.
 RUN systemctl enable sshd.service
@@ -86,5 +111,5 @@ Restart=always
 WantedBy=multi-user.target
 EOF
 
-## Verify final image and contents are correct.
+# Verify final server image and contents are correct.
 RUN bootc container lint

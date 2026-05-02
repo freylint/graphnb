@@ -5,7 +5,24 @@
     {% if batnet_no_cache %} --no-cache {% endif %}
     -f {{ batnet_cfg.containerfile }}
     {% if batnet_cfg.use_base_arg | default(false) %} --build-arg BASE_IMAGE={{ batnet_target_base_image }}{% endif %}
+    {% if batnet_cfg.supports_build_target | default(false) %} --target {{ batnet_target_role }}{% endif %}
     -t {{ batnet_target_image }}
     "{{ batnet_cfg.containerfile | dirname }}"
   args:
     chdir: "{{ playbook_dir }}/.."
+
+- name: Sign container image with GPG key when enabled
+  ansible.builtin.command:
+    cmd:
+      - podman
+      - image
+      - sign
+      - --sign-by
+      - "{{ batnet_image_signing_key }}"
+      - "{{ batnet_target_image }}"
+  args:
+    chdir: "{{ playbook_dir }}/.."
+  when:
+    - batnet_image_signing_enabled | default(false) | bool
+    - batnet_cfg.supports_signing | default(false) | bool
+    - batnet_image_signing_key | default('') | trim != ''
