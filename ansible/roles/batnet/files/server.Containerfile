@@ -32,7 +32,11 @@ RUN dnf install -y \
     dnf copr enable lizardbyte/beta -y
 
 # Install RPM Packages
-RUN dnf install -y git neovim code steam bottles sunshine rustup openssh-server firefox ansible && dnf clean all
+RUN dnf install -y git neovim code steam bottles sunshine rustup openssh-server firefox ansible zsh && dnf clean all
+
+# Make zsh the default login shell for all valid users.
+RUN if ! grep -q "^$(command -v zsh)$" /etc/shells; then echo "$(command -v zsh)" >> /etc/shells; fi && \
+    awk -F: '($7 !~ /(nologin|false)$/){print $1}' /etc/passwd | xargs -r -n1 sh -c 'usermod -s "$(command -v zsh)" "$0"'
 
 # Enable SSH daemon so Cockpit can connect to this machine over SSH.
 RUN systemctl enable sshd.service

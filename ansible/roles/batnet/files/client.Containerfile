@@ -41,8 +41,12 @@ RUN dnf install -y \
     openssh-server \
     ansible \
     firefox \
+    zsh \
     && dnf clean all
 
+# Make zsh the default login shell for all valid users.
+RUN if ! grep -q "^$(command -v zsh)$" /etc/shells; then echo "$(command -v zsh)" >> /etc/shells; fi && \
+    awk -F: '($7 !~ /(nologin|false)$/){print $1}' /etc/passwd | xargs -r -n1 sh -c 'usermod -s "$(command -v zsh)" "$0"'
 
 # Verify final image and contents are correct.
 RUN bootc container lint
