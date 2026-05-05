@@ -53,7 +53,7 @@ RUN if ! grep -q "^$(command -v zsh)$" /etc/shells; then echo "$(command -v zsh)
 FROM base AS client
 
 # Install client-only runtime artifacts.
-RUN dnf install -y flatpak plasma-workspace-x11 && dnf clean all
+RUN dnf install -y flatpak plasma-workspace-x11 sddm-x11 && dnf clean all
 
 RUN flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo && \
     flatpak install -y --system flathub com.moonlight_stream.Moonlight
