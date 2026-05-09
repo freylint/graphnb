@@ -42,8 +42,9 @@ RUN dnf install -y \
     rustup \
     openssh-server \
     firefox \
-    ansible \
+    ansible.noarch \
     zsh \
+    make.x86_64  \
     && dnf clean all
 
 # Make zsh the default login shell for all valid users.
@@ -53,7 +54,10 @@ RUN if ! grep -q "^$(command -v zsh)$" /etc/shells; then echo "$(command -v zsh)
 FROM base AS client
 
 # Install client-only runtime artifacts.
-RUN dnf install -y flatpak plasma-workspace-x11 sddm-x11 && dnf clean all
+RUN dnf install -y flatpak \
+plasma-workspace-x11.x86_64 \
+sddm-x11.noarch \
+&& dnf clean all
 
 RUN flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo && \
     flatpak install -y --system flathub com.moonlight_stream.Moonlight
