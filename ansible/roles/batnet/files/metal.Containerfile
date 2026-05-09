@@ -35,7 +35,7 @@ RUN dnf install -y \
 RUN dnf install -y \
     git \
     neovim \
-    code \Q
+    code \
     steam \
     bottles \
     sunshine \
