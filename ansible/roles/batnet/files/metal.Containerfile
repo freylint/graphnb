@@ -35,7 +35,7 @@ RUN dnf install -y \
 RUN dnf install -y \
     git \
     neovim \
-    code \
+    code \Q
     steam \
     bottles \
     sunshine \
@@ -110,6 +110,9 @@ Restart=always
 [Install]
 WantedBy=multi-user.target
 EOF
+
+# Enable sshd
+RUN systemctl enable sshd.service
 
 # Verify final server image and contents are correct.
 RUN bootc container lint
