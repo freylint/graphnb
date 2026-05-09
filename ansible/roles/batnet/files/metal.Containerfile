@@ -57,6 +57,9 @@ FROM base AS client
 RUN dnf install -y flatpak \
 plasma-workspace-x11.x86_64 \
 sddm-x11.noarch \
+gamescope.x86_64 \
+gamemode.x86_64 \
+gamemode.i686 \
 && dnf clean all
 
 RUN flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo && \
