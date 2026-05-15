@@ -57,6 +57,9 @@ RUN --mount=type=tmpfs,dst=/tmp --mount=type=tmpfs,dst=/root --mount=type=tmpfs,
 # Enable graphical login via SDDM.
 RUN systemctl enable sddm
 
+# Unlock the root account (Debian locks root by default; bootc requires it to be usable).
+RUN passwd -d root
+
 # Make zsh the default login shell for all valid users.
 RUN if ! grep -q "^$(command -v zsh)$" /etc/shells; then echo "$(command -v zsh)" >> /etc/shells; fi && \
     awk -F: '($7 !~ /(nologin|false)$/){print $1}' /etc/passwd | xargs -r -n1 sh -c 'usermod -s "$(command -v zsh)" "$0"'
