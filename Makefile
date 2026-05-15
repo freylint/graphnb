@@ -17,27 +17,27 @@ build: check-root
 build-no-cache: check-root
 	$(ANSIBLE_PLAYBOOK) -i $(ANSIBLE_INVENTORY) $(ANSIBLE_RUNNER) -e target_role=server -e target_action=build-no-cache -e no_cache=true
 
-# 1b2. Build server image (NVIDIA base image)
+# 1b2. Build server image with NVIDIA enabled
 build-nvidia: check-root
 	$(ANSIBLE_PLAYBOOK) -i $(ANSIBLE_INVENTORY) $(ANSIBLE_RUNNER) -e target_role=server -e target_action=build -e build_variant=nvidia
 
-# 1b3. Build server image (NVIDIA base image) without using cache
+# 1b3. Build server image with NVIDIA enabled, without cache
 build-nvidia-no-cache: check-root
 	$(ANSIBLE_PLAYBOOK) -i $(ANSIBLE_INVENTORY) $(ANSIBLE_RUNNER) -e target_role=server -e target_action=build-no-cache -e build_variant=nvidia -e no_cache=true
 
-# 1c. Build client image (AMD/Intel base)
+# 1c. Build client image
 client: check-root
 	$(ANSIBLE_PLAYBOOK) -i $(ANSIBLE_INVENTORY) $(ANSIBLE_RUNNER) -e target_role=client -e target_action=build
 
-# 1c2. Build client image without using cache (AMD/Intel base)
+# 1c2. Build client image without cache
 client-no-cache: check-root
 	$(ANSIBLE_PLAYBOOK) -i $(ANSIBLE_INVENTORY) $(ANSIBLE_RUNNER) -e target_role=client -e target_action=build-no-cache -e no_cache=true
 
-# 1d. Build client image (NVIDIA base image)
+# 1d. Build client image with NVIDIA enabled
 client-nvidia: check-root
 	$(ANSIBLE_PLAYBOOK) -i $(ANSIBLE_INVENTORY) $(ANSIBLE_RUNNER) -e target_role=client -e target_action=build -e build_variant=nvidia
 
-# 1d2. Build client image without using cache (NVIDIA base image)
+# 1d2. Build client image with NVIDIA enabled, without cache
 client-nvidia-no-cache: check-root
 	$(ANSIBLE_PLAYBOOK) -i $(ANSIBLE_INVENTORY) $(ANSIBLE_RUNNER) -e target_role=client -e target_action=build-no-cache -e build_variant=nvidia -e no_cache=true
 
@@ -49,7 +49,7 @@ build-cloud: check-root
 build-cloud-no-cache: check-root
 	$(ANSIBLE_PLAYBOOK) -i $(ANSIBLE_INVENTORY) $(ANSIBLE_RUNNER) -e target_role=cloud -e target_action=build-no-cache -e no_cache=true
 
-# 2. Deploy/Rebase the local machine to a selected image variant
+# 2. Deploy/Rebase the local machine to a built endpoint image
 # Supported: DEPLOY_VARIANT=server|server-nvidia|client|client-nvidia (default: server)
 deploy: check-root
 	@case "$(DEPLOY_VARIANT)" in \

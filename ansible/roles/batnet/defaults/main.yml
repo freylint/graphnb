@@ -1,9 +1,6 @@
 ---
 batnet_role: server
 
-batnet_base_image: ghcr.io/ublue-os/bazzite:stable
-batnet_nvidia_base_image: ghcr.io/ublue-os/bazzite-nvidia:stable
-
 server_packages:
   - cockpit
   - podman
@@ -11,9 +8,7 @@ server_packages:
 
 server_image_name: localhost/server
 server_tag: latest
-server_containerfile: ansible/roles/batnet/files/metal.Containerfile
-server_base_image: "{{ batnet_base_image }}"
-server_nvidia_base_image: "{{ batnet_nvidia_base_image }}"
+server_containerfile: ansible/roles/batnet/files/endpoint.Containerfile
 
 client_packages:
   - steam
@@ -23,9 +18,7 @@ client_packages:
 
 client_image_name: localhost/client
 client_tag: latest
-client_containerfile: ansible/roles/batnet/files/metal.Containerfile
-client_base_image: "{{ batnet_base_image }}"
-client_nvidia_base_image: "{{ batnet_nvidia_base_image }}"
+client_containerfile: ansible/roles/batnet/files/endpoint.Containerfile
 
 batnet_image_signing_enabled: false
 batnet_image_signing_key: ""
@@ -59,9 +52,8 @@ batnet_container_configs:
     default_tag: "{{ server_tag }}"
     nvidia_tag: nvidia
     containerfile: "{{ server_containerfile }}"
-    base_image: "{{ server_base_image }}"
-    nvidia_base_image: "{{ server_nvidia_base_image }}"
-    use_base_arg: true
+    use_base_arg: false
+    supports_build_target: false
     build_actions:
       - build
       - build-no-cache
@@ -71,15 +63,13 @@ batnet_container_configs:
     supports_clean: true
     clean_target: "{{ server_image_name }}:{{ server_tag }}"
     supports_signing: true
-    supports_build_target: true
   client:
     image_name: "{{ client_image_name }}"
-    default_tag: amd-intel
+    default_tag: "{{ client_tag }}"
     nvidia_tag: nvidia
     containerfile: "{{ client_containerfile }}"
-    base_image: "{{ client_base_image }}"
-    nvidia_base_image: "{{ client_nvidia_base_image }}"
-    use_base_arg: true
+    use_base_arg: false
+    supports_build_target: false
     build_actions:
       - build
       - build-no-cache
@@ -88,12 +78,12 @@ batnet_container_configs:
     deploy_strategy: bootc
     supports_clean: false
     supports_signing: true
-    supports_build_target: true
   cloud:
     image_name: "{{ cloud_image_name }}"
     default_tag: "{{ cloud_tag }}"
     containerfile: "{{ cloud_containerfile }}"
     use_base_arg: false
+    supports_build_target: false
     build_actions:
       - build
       - build-no-cache
